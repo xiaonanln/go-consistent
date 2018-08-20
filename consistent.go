@@ -43,7 +43,7 @@ type Consistent struct {
 	hosts   map[string]struct{}
 }
 
-func NewConsistent() *Consistent {
+func New() *Consistent {
 	c := &Consistent{
 		replica: DefaultReplica,
 		hosts:   map[string]struct{}{},

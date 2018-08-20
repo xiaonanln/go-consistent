@@ -9,7 +9,7 @@ import (
 )
 
 func TestConsistentBasic(t *testing.T) {
-	c := NewConsistent()
+	c := New()
 	_, err := c.Hash("abc")
 	if err != ErrNoHost {
 		t.Fatalf("should returns ErrNoHost")
@@ -27,8 +27,8 @@ func TestConsistentBasic(t *testing.T) {
 		t.Fatalf("should returns ErrNoHost")
 	}
 
-	c1 := NewConsistent()
-	c2 := NewConsistent()
+	c1 := New()
+	c2 := New()
 	for i := 0; i < 10; i++ {
 		c1.Add(fmt.Sprintf("host%d", i))
 		c2.Add(fmt.Sprintf("host%d", 10-i-1))
@@ -77,7 +77,7 @@ func BenchmarkStringToSlice2(b *testing.B) {
 }
 
 func BenchmarkConsistent_AddRemove(b *testing.B) {
-	c := NewConsistent()
+	c := New()
 	for i := 0; i < 10; i++ {
 		c.Add(strconv.Itoa(i))
 	}
@@ -88,7 +88,7 @@ func BenchmarkConsistent_AddRemove(b *testing.B) {
 }
 
 func BenchmarkConsistent_Hash(b *testing.B) {
-	c := NewConsistent()
+	c := New()
 	for i := 0; i < 100; i++ {
 		c.Add(strconv.Itoa(i))
 	}

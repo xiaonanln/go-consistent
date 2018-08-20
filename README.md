@@ -14,7 +14,7 @@ go get github.com/xiaonanln/go-consistent
 import "github.com/xiaonanln/go-consistent"
 
 // Create Consistent Hashing
-c := consistent.NewConsistent()
+c := consistent.New()
 // Hash returns ErrNoHost if there are no hosts
 c.Hash("key") // returns "", consistent.ErrNoHost
 // Add adds a new hash

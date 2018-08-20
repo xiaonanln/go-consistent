@@ -27,3 +27,8 @@ c.Hash("key") // returns "host1"/"host2", nil
 // SetReplica changes replica. The defualt replica is 20
 c.SetReplica(100) // reset replica from 20 to 100
 ```
+# Complexity
+Assuming `N` is number of hosts:  
+* `Add` = `O(N)`
+* `Hash` = `O(log N)`
+* `SetReplica` = `O(N)`

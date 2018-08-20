@@ -3,6 +3,7 @@ package consistent
 import (
 	"fmt"
 	"math/rand"
+	"strconv"
 	"testing"
 	"unsafe"
 )
@@ -72,5 +73,26 @@ func BenchmarkStringToSlice2(b *testing.B) {
 	}
 	if tl != len(s)*b.N {
 		b.Fatalf("wrong length")
+	}
+}
+
+func BenchmarkConsistent_AddRemove(b *testing.B) {
+	c := NewConsistent()
+	for i := 0; i < 10; i++ {
+		c.Add(strconv.Itoa(i))
+	}
+	for i := 0; i < b.N; i++ {
+		c.Add("test")
+		c.Remove("test")
+	}
+}
+
+func BenchmarkConsistent_Hash(b *testing.B) {
+	c := NewConsistent()
+	for i := 0; i < 100; i++ {
+		c.Add(strconv.Itoa(i))
+	}
+	for i := 0; i < b.N; i++ {
+		c.Hash(strconv.Itoa(1000 + i))
 	}
 }

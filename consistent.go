@@ -4,6 +4,8 @@ import (
 	"encoding/binary"
 	"unsafe"
 
+	"sort"
+
 	"github.com/pkg/errors"
 )
 
@@ -13,32 +15,38 @@ var (
 	ErrNoHost = errors.New("no host")
 )
 
-type hashentry struct {
-	hash       uint32
-	host       string
-	replicaIdx uint32
+type circleEntry struct {
+	hash uint32
+	host string
 }
-type hashlist []struct{}
+type circle []circleEntry
 
-// Len returns the length of the hashlist array.
-func (x hashlist) Len() int { return len(x) }
+// Len returns the length of the circle array.
+func (x circle) Len() int { return len(x) }
 
 // Less returns true if element i is less than element j.
-func (x hashlist) Less(i, j int) bool { return x[i] < x[j] }
+func (x circle) Less(i, j int) bool {
+	h1, h2 := x[i].hash, x[j].hash
+	if h1 != h2 {
+		return h1 < h2
+	}
+
+	return x[i].host < x[j].host
+}
 
 // Swap exchanges elements i and j.
-func (x hashlist) Swap(i, j int) { x[i], x[j] = x[j], x[i] }
+func (x circle) Swap(i, j int) { x[i], x[j] = x[j], x[i] }
 
 type Consistent struct {
-	replica      int
-	sortedHashes hashlist
-	host2hash    map[string]uint32
-	hash2host    map[uint32]string
+	replica int
+	circle  circle
+	hosts   map[string]struct{}
 }
 
 func NewConsistent() *Consistent {
 	c := &Consistent{
 		replica: DefaultReplica,
+		hosts:   map[string]struct{}{},
 	}
 	return c
 }
@@ -49,20 +57,40 @@ func (c *Consistent) SetReplica(replica int) {
 	}
 
 	c.replica = replica
+	c.rebuildCircle()
 }
 
 func (c *Consistent) Add(host string) {
+	if _, ok := c.hosts[host]; ok {
+		return
+	}
 
+	c.hosts[host] = struct{}{}
+	c.rebuildCircle()
 }
 
 func (c *Consistent) Remove(host string) {
-
+	if _, ok := c.hosts[host]; !ok {
+		return
+	}
+	delete(c.hosts, host)
+	c.rebuildCircle()
 }
 
 func (c *Consistent) Hash(key string) (host string, err error) {
+	if len(c.circle) == 0 {
+		return "", ErrNoHost
+	}
+
 	keyhash := c.hashKey(key)
-	idx = c.search(keyhash)
-	return "", ErrNoHost
+	i := sort.Search(len(c.circle), func(i int) bool {
+		return c.circle[i].hash > keyhash
+	})
+	if i >= len(c.circle) {
+		i = 0
+	}
+
+	return c.circle[i].host, nil
 }
 
 func (c *Consistent) hashHost(host string, replicaIdx uint32) uint32 {
@@ -71,6 +99,20 @@ func (c *Consistent) hashHost(host string, replicaIdx uint32) uint32 {
 
 func (c *Consistent) hashKey(key string) uint32 {
 	return hash(unsafeStringToByteSlice(key))
+}
+
+func (c *Consistent) rebuildCircle() {
+	c.circle = make(circle, 0, len(c.hosts)*c.replica)
+	for host := range c.hosts {
+		for i := 0; i < c.replica; i++ {
+			replicaIdx := uint32(i)
+			c.circle = append(c.circle, circleEntry{
+				hash: c.hashHost(host, replicaIdx),
+				host: host,
+			})
+		}
+	}
+	sort.Sort(c.circle)
 }
 
 func unsafeStringToByteSlice(s string) []byte {

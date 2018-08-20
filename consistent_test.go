@@ -1,6 +1,8 @@
 package consistent
 
 import (
+	"fmt"
+	"math/rand"
 	"testing"
 	"unsafe"
 )
@@ -18,6 +20,37 @@ func TestConsistentBasic(t *testing.T) {
 		t.Fatalf("should returns host1")
 	}
 
+	c.Remove("host1")
+	_, err = c.Hash("abc")
+	if err != ErrNoHost {
+		t.Fatalf("should returns ErrNoHost")
+	}
+
+	c1 := NewConsistent()
+	c2 := NewConsistent()
+	for i := 0; i < 10; i++ {
+		c1.Add(fmt.Sprintf("host%d", i))
+		c2.Add(fmt.Sprintf("host%d", 10-i-1))
+	}
+
+	strbuf := make([]byte, 256)
+
+	for i := 0; i < 1000; i++ {
+		keylen := rand.Intn(16) + 16
+		rand.Read(strbuf[:keylen])
+		key := string(strbuf[:keylen])
+		host1, err := c1.Hash(key)
+		if err != nil {
+			t.Fatal(err)
+		}
+		host2, err := c2.Hash(key)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if host1 != host2 {
+			t.FailNow()
+		}
+	}
 }
 
 func BenchmarkStringToSlice1(b *testing.B) {

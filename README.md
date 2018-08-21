@@ -1,7 +1,7 @@
 # go-consistent
 go consistent hashing library
 
-It is not concurrency safe.
+**It is NOT concurrency safe.**
 
 # Install 
 ```bash

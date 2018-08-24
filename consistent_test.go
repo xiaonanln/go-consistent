@@ -89,7 +89,8 @@ func BenchmarkConsistent_AddRemove(b *testing.B) {
 
 func BenchmarkConsistent_Hash(b *testing.B) {
 	c := New()
-	for i := 0; i < 100; i++ {
+	c.SetReplica(100)
+	for i := 0; i < 10; i++ {
 		c.Add(strconv.Itoa(i))
 	}
 	for i := 0; i < b.N; i++ {

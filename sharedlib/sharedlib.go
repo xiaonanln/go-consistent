@@ -36,3 +36,8 @@ func Hash(key *C.char) *C.char {
 func SetReplica(replica int) {
 	c.SetReplica(replica)
 }
+
+//export CFree
+func CFree(void *p) {
+	C.Free(p)
+}

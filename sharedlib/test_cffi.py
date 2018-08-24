@@ -1,4 +1,3 @@
-from __future__ import print_function
 import sys
 from cffi import FFI
 
@@ -20,14 +19,23 @@ typedef struct {
     GoInt len;
 } GoString;
 
-void Add(GoString host);
-void Remove(GoString host);
-GoString Hash(GoString key);
+void Add(const char *host);
+void Remove(const char *host);
+const char *Hash(const char *key);
 void SetReplica(GoInt replica);
+void Cfree(void *p);
 """)
 
 lib = ffi.dlopen("./consistent.so")
-print(lib.Add)
+print lib.Add, lib.Remove, lib.Hash, lib.Cfree
+
+host1 = ffi.new("char[]", "host1")
+lib.Add(host1)
+key = ffi.new("char[]", "test_key")
+host = lib.Hash(key)
+print ffi.string(host)
+lib.Cfree(host)
+
 # print("awesome.Add(12,99) = %d" % lib.Add(12,99))
 # print("awesome.Cosine(1) = %f" % lib.Cosine(1))
 #

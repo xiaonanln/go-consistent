@@ -1,8 +1,13 @@
 package main
 
+// #include "stdlib.h"
 import "C"
 
-import "github.com/xiaonanln/go-consistent"
+import (
+	"unsafe"
+
+	"github.com/xiaonanln/go-consistent"
+)
 
 var (
 	c = consistent.New()
@@ -37,7 +42,7 @@ func SetReplica(replica int) {
 	c.SetReplica(replica)
 }
 
-//export CFree
-func CFree(void *p) {
-	C.Free(p)
+//export Cfree
+func Cfree(p unsafe.Pointer) {
+	C.free(p)
 }

@@ -1,5 +1,7 @@
 package main
 
+import "C"
+
 import "github.com/xiaonanln/go-consistent"
 
 var (
@@ -11,22 +13,22 @@ func main() {
 }
 
 //export Add
-func Add(host string) {
-	c.Add(host)
+func Add(host *C.char) {
+	c.Add(C.GoString(host))
 }
 
 //export Remove
-func Remove(host string) {
-	c.Remove(host)
+func Remove(host *C.char) {
+	c.Remove(C.GoString(host))
 }
 
 //export Hash
-func Hash(key string) string {
-	h, err := c.Hash(key)
+func Hash(key *C.char) *C.char {
+	h, err := c.Hash(C.GoString(key))
 	if err != nil {
-		return ""
+		return C.CString("")
 	} else {
-		return h
+		return C.CString(h)
 	}
 }
 
